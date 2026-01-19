@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project: Mikaella's Birthday</title>
+    <style>
+        :root {
+            --primary: #FFB6C1;
+            --secondary: #9370DB;
+            --bg: #FFF0F5;
+            --text: #333;
+            --paper-back-1: #F4C2C2;
+            --paper-back-2: #FFDAB9;
+            --paper-front-1: #FFB6C1;
+            --paper-front-2: rgba(255, 240, 245, 0.85);
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- LANDING PAGE STYLES --- */
+        #landing-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box;
+            transition: opacity 0.8s ease;
+        }
+
+        .brief-card {
+            border: 2px solid var(--secondary);
+            padding: 30px; max-width: 400px; width: 100%;
+            background: #fdfdfd; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 8px; text-align: left;
+            position: relative;
+        }
+        
+        .brief-card::before {
+            content: "CONFIDENTIAL";
+            position: absolute; top: -12px; left: 20px;
+            background: var(--secondary); color: white;
+            padding: 2px 10px; font-size: 0.7rem; font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .brief-header {
+            border-bottom: 2px dashed #eee; padding-bottom: 15px; margin-bottom: 20px;
+        }
+        .brief-header h2 { margin: 0; font-size: 1.2rem; color: var(--text); }
+        .brief-meta { font-size: 0.75rem; color: #666; margin-top: 5px; }
+
+        .brief-body { font-size: 0.85rem; line-height: 1.6; color: #444; margin-bottom: 25px; }
+        .brief-body strong { color: var(--secondary); }
+
+        .start-btn {
+            background: var(--secondary); color: white;
+            width: 100%; padding: 15px; border: none; border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .start-btn:active { transform: scale(0.98); }
+
+        /* --- MAIN APP STYLES --- */
+        #app-container {
+            display: none; /* Hidden by default */
+            opacity: 0;
+            flex-direction: column; align-items: center;
+            width: 100%; padding-top: 20px;
+            transition: opacity 1s ease;
+        }
+
+        h1 { color: var(--secondary); font-size: 1.5rem; margin-bottom: 5px; }
+        .subtitle {
+            font-size: 0.8rem; color: #666; margin-bottom: 20px;
+            border-bottom: 2px dashed var(--secondary); padding-bottom: 10px;
+            width: 100%; max-width: 400px; text-align: center;
+        }
+
+        #campaign-canvas {
+            width: 320px; height: 450px;
+            background: linear-gradient(to bottom, #fdfdfd, #f8f0f8);
+            border: 2px solid var(--secondary); border-radius: 12px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        /* WRAPPER LAYERS */
+        .wrap-layer {
+            position: absolute; bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.8s ease-out;
+        }
+        #wrapper-back-container { opacity: 0; z-index: 5; }
+        .wb-1 {
+            width: 340px; height: 380px;
+            background: linear-gradient(to bottom right, var(--paper-back-1), #E8B1B1);
+            clip-path: polygon(5% 0%, 95% 5%, 100% 20%, 65% 100%, 35% 100%, 0% 20%);
+            bottom: 20px;
+        }
+        .wb-2 {
+            width: 300px; height: 350px;
+            background: linear-gradient(to bottom left, var(--paper-back-2), #F0C8A8);
+            clip-path: polygon(10% 5%, 90% 0%, 95% 25%, 60% 100%, 40% 100%, 5% 25%);
+            bottom: 30px; z-index: 6;
+        }
+
+        #wrapper-front-container { opacity: 0; z-index: 50; transition-delay: 0.2s; }
+        .wf-1 {
+            width: 260px; height: 280px;
+            background: linear-gradient(135deg, var(--paper-front-1), #FF9EB5);
+            clip-path: polygon(0% 20%, 50% 45%, 100% 20%, 70% 100%, 30% 100%);
+            bottom: 25px;
+        }
+        .wf-2 {
+            width: 240px; height: 260px;
+            background: linear-gradient(to bottom, var(--paper-front-2), rgba(255,255,255,0.6));
+            clip-path: polygon(5% 25%, 50% 55%, 95% 25%, 65% 100%, 35% 100%);
+            bottom: 30px; z-index: 51; backdrop-filter: blur(1px);
+        }
+
+        #bouquet-container {
+            position: absolute; width: 100%; height: 100%;
+            top: 0; left: 0; pointer-events: none; z-index: 20;
+        }
+
+        .flower {
+            font-size: 3.2rem; position: absolute; left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) scale(var(--scale)) rotate(var(--rot));
+            bottom: var(--bottomY);
+            z-index: 25; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            opacity: 0;
+            animation: pop-in 0.6s cubic-bezier(0.2, 1.5, 0.5, 1) forwards;
+        }
+
+        @keyframes pop-in {
+            0% { opacity: 0; transform: translateX(-50%) translateY(80px) scale(0.3) rotate(0deg); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0px) scale(var(--scale)) rotate(var(--rot)); }
+        }
+
+        .controls {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            max-width: 400px; width: 100%; margin-bottom: 40px; padding: 0 20px; box-sizing: border-box;
+        }
+        button {
+            background: white; border: 1px solid var(--secondary);
+            padding: 8px; border-radius: 8px; cursor: pointer;
+            transition: all 0.1s; box-shadow: 0 2px 3px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center;
+        }
+        button:active { transform: scale(0.97); background-color: #f5f5f5; }
+        button span.emoji { font-size: 1.3rem; }
+        button span.term { font-weight: bold; color: var(--secondary); font-size: 0.75rem; }
+        button span.desc { font-size: 0.55rem; color: #888; }
+
+        #launch-btn {
+            grid-column: span 2; background-color: var(--secondary);
+            color: white; font-weight: bold; margin-top: 10px;
+            padding: 12px; border: none; font-size: 0.9rem;
+            background: linear-gradient(to right, var(--secondary), #BA55D3);
+        }
+
+        #invoice-modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .receipt {
+            background: white; padding: 25px; border-radius: 10px;
+            width: 85%; max-width: 350px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            text-align: left; font-family: 'Courier New', Courier, monospace;
+            border-top: 8px solid var(--secondary);
+            max-height: 85vh; overflow-y: auto;
+        }
+        .receipt h2 { text-align: center; margin: 0 0 15px 0; color: var(--text); }
+        .line-item {
+            display: flex; justify-content: space-between; margin: 8px 0;
+            font-size: 0.8rem; border-bottom: 1px dotted #eee; padding-bottom: 4px;
+        }
+        .total {
+            border-top: 2px dashed #333; margin-top: 15px; padding-top: 10px;
+            font-weight: bold; display: flex; justify-content: space-between; font-size: 1.1rem;
+        }
+        .note {
+            margin-top: 20px; font-size: 0.75rem; text-align: center;
+            color: #555; font-style: italic; line-height: 1.5;
+            background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;
+        }
+        .close-btn {
+            background: var(--secondary); color: white; width: 100%;
+            margin-top: 15px; border: none; padding: 12px; cursor: pointer; border-radius: 6px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="landing-page">
+        <div class="brief-card">
+            <div class="brief-header">
+                <h2>📁 PROJECT: BDAY_2026</h2>
+                <div class="brief-meta">
+                    <strong>To:</strong> Mikaella (Creative Director)<br>
+                    <strong>From:</strong> Engineering Dept. (John)<br>
+                    <strong>Date:</strong> Feb 1, 2026
+                </div>
+            </div>
+            
+            <div class="brief-body">
+                <p><strong>SUBJECT: Asset Generation Protocol</strong></p>
+                <p>
+                    Since physical logistics for the <strong>DIY Flower</strong> delivery are currently pending (read: I cannot hand them to you personally yet), I have deployed a custom software solution.
+                </p>
+                <p>
+                    <strong>YOUR MISSION:</strong><br>
+                    1. Use the "Asset Builder" to compile your own bouquet.<br>
+                    2. Combine marketing strategies (Flowers) to maximize ROI (Happiness).<br>
+                    3. Launch the campaign to receive your invoice.
+                </p>
+                <p>
+                    <em>Note: This website is interactable. Please proceed with creativity.</em>
+                </p>
+            </div>
+
+            <button class="start-btn" onclick="startApp()">ACCEPT ASSIGNMENT →</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <h1>🚀 Campaign: Feb 1 Launch</h1>
+        <div class="subtitle">Client: Mikaella | Objective: Happiness ROI</div>
+
+        <div id="campaign-canvas">
+            <div id="wrapper-back-container" class="wrap-layer">
+                <div class="wrap-layer wb-1"></div>
+                <div class="wrap-layer wb-2"></div>
+            </div>
+            <div id="bouquet-container"></div>
+            <div id="wrapper-front-container" class="wrap-layer">
+                <div class="wrap-layer wf-1"></div>
+                <div class="wrap-layer wf-2"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="addFlower('🌻', 'Organic Reach')"><span class="emoji">🌻</span><span class="term">Organic Reach</span><span class="desc">High visibility</span></button>
+            <button onclick="addFlower('🌹', 'Brand Loyalty')"><span class="emoji">🌹</span><span class="term">Brand Loyalty</span><span class="desc">Retention strategy</span></button>
+            <button onclick="addFlower('🌷', 'Unique Value')"><span class="emoji">🌷</span><span class="term">Unique Value</span><span class="desc">Aesthetic appeal</span></button>
+            <button onclick="addFlower('🌿', 'Steady Growth')"><span class="emoji">🌿</span><span class="term">Steady Growth</span><span class="desc">Solid foundation</span></button>
+            <button onclick="addFlower('🌸', 'Soft Launch')"><span class="emoji">🌸</span><span class="term">Soft Launch</span><span class="desc">Delicate start</span></button>
+            <button onclick="addFlower('🌼', 'Fresh Content')"><span class="emoji">🌼</span><span class="term">Fresh Content</span><span class="desc">Daily engagement</span></button>
+            <button onclick="addFlower('🌺', 'Seasonal Promo')"><span class="emoji">🌺</span><span class="term">Seasonal Promo</span><span class="desc">Special event</span></button>
+            <button onclick="addFlower('🪻', 'UX Design')"><span class="emoji">🪻</span><span class="term">UX Design</span><span class="desc">Calm & smooth</span></button>
+
+            <button id="launch-btn" onclick="launchCampaign()">🚀 LAUNCH CAMPAIGN</button>
+        </div>
+    </div>
+
+    <div id="invoice-modal">
+        <div class="receipt">
+            <h2>🎉 CAMPAIGN LIVE!</h2>
+            <p style="text-align: center; font-size: 0.7rem; margin-bottom: 15px; color: #666;">Ref: MIKA-BDAY-24 | Status: DELIVERED</p>
+            <div id="receipt-items"></div>
+            <div class="total"><span>TOTAL VALUE:</span><span>PRICELESS</span></div>
+            <p class="note">"Since I can't hand you the physical DIY flowers today, here is a custom-coded, marketing-approved digital asset designed specifically for you. Happy Birthday!" <br><br>- Engr. John</p>
+            <button class="close-btn" onclick="closeModal()">Close Invoice</button>
+        </div>
+    </div>
+
+    <script>
+        // --- PAGE TRANSITION LOGIC ---
+        function startApp() {
+            const landing = document.getElementById('landing-page');
+            const app = document.getElementById('app-container');
+            const music = document.getElementById('bg-music');
+
+            // Fade out landing
+            landing.style.opacity = '0';
+
+            // PLAY MUSIC (User interaction triggers this)
+            // Note: Volume is set to 0.4 (40%) to be subtle
+            music.volume = 0.4;
+            music.play().catch(e => console.log("Audio autoplay prevented"));
+            
+            // Wait for fade to finish, then swap
+            setTimeout(() => {
+                landing.style.display = 'none';
+                app.style.display = 'flex';
+                // Trigger fade in for app
+                setTimeout(() => {
+                    app.style.opacity = '1';
+                }, 50);
+            }, 800);
+        }
+
+        // --- BOUQUET LOGIC ---
+        const bouquetContainer = document.getElementById('bouquet-container');
+        const receiptItems = document.getElementById('receipt-items');
+        let flowerCount = 0;
+        let items = [];
+
+        // Fixed positions for perfect dome shape
+        const bouquetPositions = [
+            [0, 200, 0, 1.0], [-25, 205, -10, 1.0], [25, 205, 10, 1.0],
+            [-12, 230, -5, 1.05], [12, 230, 5, 1.05], [-40, 225, -20, 1.0], [40, 225, 20, 1.0],
+            [0, 255, 0, 1.1], [-30, 260, -15, 1.05], [30, 260, 15, 1.05], [-60, 250, -30, 1.0], [60, 250, 30, 1.0],
+            [-15, 280, -8, 1.05], [15, 280, 8, 1.05], [-75, 240, -35, 0.95], [75, 240, 35, 0.95],
+            [-45, 290, -20, 1.05], [45, 290, 20, 1.05], [0, 305, 0, 1.15], [-85, 265, -40, 0.95]
+        ];
+        const maxFlowers = bouquetPositions.length;
+
+        function addFlower(emoji, marketingTerm) {
+            if (flowerCount >= maxFlowers) { alert("Bouquet capacity reached! It's perfect."); return; }
+            const config = bouquetPositions[flowerCount];
+            const [offsetX, bottomY, rot, scale] = config;
+            
+            const el = document.createElement('div');
+            el.classList.add('flower'); el.innerText = emoji;
+            el.style.setProperty('--bottomY', `${bottomY}px`);
+            el.style.setProperty('--rot', `${rot}deg`);
+            el.style.setProperty('--scale', scale);
+            el.style.marginLeft = `${offsetX}px`;
+            el.style.zIndex = 30 - flowerCount; 
+            
+            bouquetContainer.appendChild(el);
+            flowerCount++;
+            items.push({ term: marketingTerm });
+        }
+
+        function launchCampaign() {
+            if (flowerCount === 0) { alert("Cannot launch empty campaign. Add flowers!"); return; }
+            document.getElementById('wrapper-back-container').style.opacity = '1';
+            document.getElementById('wrapper-front-container').style.opacity = '1';
+            createConfetti();
+            setTimeout(showInvoice, 2000);
+        }
+
+        function showInvoice() {
+            receiptItems.innerHTML = '';
+            const counts = {};
+            items.forEach(i => counts[i.term] = (counts[i.term] || 0) + 1);
+            for (const [key, value] of Object.entries(counts)) {
+                receiptItems.innerHTML += `<div class="line-item"><span>${value}x ${key}</span><span>—</span></div>`;
+            }
+            document.getElementById('invoice-modal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('invoice-modal').style.display = 'none'; }
+
+        function createConfetti() {
+            for(let i=0; i<40; i++) {
+                const c = document.createElement('div');
+                c.innerText = ['✨','🎉','💖', '🌸'][Math.floor(Math.random()*4)];
+                c.style.cssText = `position:fixed; left:${Math.random()*100}vw; top:-5vh; font-size:1.5rem; z-index:200; transition:top 2.5s ease-in, opacity 2.5s ease-out; pointer-events:none;`;
+                document.body.appendChild(c);
+                setTimeout(()=> { c.style.top = '105vh'; c.style.opacity = '0'; }, 50);
+                setTimeout(()=> c.remove(), 2600);
+            }
+        }
+    </script>
+</body>
+</html>
